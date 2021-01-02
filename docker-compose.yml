@@ -15,21 +15,6 @@ services:
 
       # Entry Points
       - "--entrypoints.http80.address=:80"
-      # - "--entrypoints.http443.address=:443"
-      
-      # SSL - Letsencrypt integration
-      # - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
-      # - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=http80"
-      # - "--certificatesresolvers.letsencrypt.acme.email=${CODE_SERVER_EMAIL}"
-      # - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
-
-      # Force redirect http->https for every service
-      # (comment to let each service definition the responsability over this detail)
-      # - "--entrypoints.http80.http.redirections.entrypoint.to=http443"
-      # - "--entrypoints.http80.http.redirections.entrypoint.scheme=https"
-
-      #      - "--log.level=DEBUG"
-      #      - "--certificatesresolvers.letsencrypt.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
     volumes:
       - ${CODE_SERVER_CWD}/data/letsencrypt:/letsencrypt
       - ${CODE_SERVER_CWD}/data/.htpasswd:/basic-auth/.htpasswd
@@ -48,7 +33,8 @@ services:
       - "traefik.http.routers.csi-traefik--80.rule=Host(`${CODE_SERVER_DNS}`) && (PathPrefix(`/traefik`) || PathPrefix(`/api`))"
   
       - "traefik.http.middlewares.csi-basic-auth.basicauth.usersfile=/basic-auth/.htpasswd"
-      - "traefik.http.middlewares.csi-auth-passwd.forwardauth.address=http://${CODE_SERVER_IPv4_LOCAL}:40003"
+      # - "traefik.http.middlewares.csi-auth-passwd.forwardauth.address=http://${CODE_SERVER_IPv4_LOCAL}:40003"
+      - "traefik.http.middlewares.csi-auth-passwd.forwardauth.address=https://api-alpha.dbox.zone/api/v1/auth/self"
       - "traefik.http.middlewares.csi-redirect.redirectscheme.scheme=https"
       - "traefik.http.middlewares.csi-redirect.redirectscheme.permanent=true"
       - "traefik.http.middlewares.csi-traefik-stripprefix.stripprefix.prefixes=/traefik"
