@@ -71,7 +71,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.services.csi-code-server.loadbalancer.server.port=40002"
       - "traefik.http.routers.csi-code-server--80.entrypoints=http80"
-      - "traefik.http.routers.csi-code-server--80.middlewares=csi-redirect"
+      # - "traefik.http.routers.csi-code-server--80.middlewares=csi-redirect"
       - "traefik.http.routers.csi-code-server--80.rule=Host(`${CODE_SERVER_DNS}`)"
       - "traefik.http.routers.csi-code-server--80.middlewares=csi-auth-passwd"
 
