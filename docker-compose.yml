@@ -1,0 +1,179 @@
+version: "3.7"
+
+services:
+
+  traefik:
+    command:
+      # Exposes Traefik dashboard
+      # (comment this to avoid useless security risks)
+      - "--api.dashboard=true"
+
+      # Docker Integration
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=web"
+
+      # Entry Points
+      - "--entrypoints.http80.address=:80"
+      - "--entrypoints.http443.address=:443"
+      
+      # SSL - Letsencrypt integration
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=http80"
+      - "--certificatesresolvers.letsencrypt.acme.email=${CODE_SERVER_EMAIL}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+
+      # Force redirect http->https for every service
+      # (comment to let each service definition the responsability over this detail)
+      # - "--entrypoints.http80.http.redirections.entrypoint.to=http443"
+      # - "--entrypoints.http80.http.redirections.entrypoint.scheme=https"
+
+      #      - "--log.level=DEBUG"
+      #      - "--certificatesresolvers.letsencrypt.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+    volumes:
+      - ${CODE_SERVER_CWD}/data/letsencrypt:/letsencrypt
+      - ${CODE_SERVER_CWD}/data/.htpasswd:/basic-auth/.htpasswd
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    image: traefik:v2.2
+    network_mode: host
+    restart: on-failure
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.csi.loadbalancer.server.port=1337"
+      - "traefik.http.routers.csi-traefik-http.rule=Host(`127.0.0.11`)"
+
+      - "traefik.http.routers.csi-traefik-https.tls=true"
+      - "traefik.http.routers.csi-traefik-https.entrypoints=http443"
+      - "traefik.http.routers.csi-traefik-https.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.csi-traefik-https.service=api@internal"
+      - "traefik.http.routers.csi-traefik-https.middlewares=csi-auth-passwd,csi-traefik-stripprefix"
+      - "traefik.http.routers.csi-traefik-https.rule=Host(`${CODE_SERVER_DNS}`) && (PathPrefix(`/traefik`) || PathPrefix(`/api`))"
+  
+      - "traefik.http.middlewares.csi-basic-auth.basicauth.usersfile=/basic-auth/.htpasswd"
+      - "traefik.http.middlewares.csi-auth-passwd.forwardauth.address=http://${CODE_SERVER_IPv4_LOCAL}:40003"
+      - "traefik.http.middlewares.csi-redirect.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.csi-redirect.redirectscheme.permanent=true"
+      - "traefik.http.middlewares.csi-traefik-stripprefix.stripprefix.prefixes=/traefik"
+
+  auth-passwd:
+    image: marcopeg/auth-passwd:0.0.9
+    restart: always
+    volumes:
+      - ${CODE_SERVER_CWD}/data/passwd:/passwd
+    environment:
+      - "PORT=40003"
+      - "BASE_URL=https://${CODE_SERVER_DNS}"
+      - "COOKIE_DOMAIN=${CODE_SERVER_DNS}"
+      - "COOKIE_SECRET=${CODE_SERVER_MGM_COOKIE_SECRET:-}"
+    network_mode: host
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.csi-auth-passwd.loadbalancer.server.port=40003"
+
+      # Configure basic HTTP mapping:
+      - "traefik.http.routers.auth-passwd--80.entrypoints=http80"
+      - "traefik.http.routers.auth-passwd--80.rule=Host(`${CODE_SERVER_DNS}`)"
+      - "traefik.http.routers.auth-passwd--80.middlewares=csi-redirect"
+
+      # Configure HTTPS mapping with automatic Letsencrypt certificate management
+      - "traefik.http.routers.auth-passwd--443.tls=true"
+      - "traefik.http.routers.auth-passwd--443.entrypoints=http443"
+      - "traefik.http.routers.auth-passwd--443.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.auth-passwd--443.rule=Host(`${CODE_SERVER_DNS}`) && PathPrefix(`/`)"
+
+  code-server:
+    image: marcopeg/nginx-proxy:0.0.2
+    environment:
+     - NGINX_PORT=40002
+     - NGINX_UPSTREAM_PORT=40001
+    network_mode: host
+    restart: on-failure
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.csi-code-server.loadbalancer.server.port=40002"
+
+      # Configure basic HTTP mapping
+      - "traefik.http.routers.csi-code-server--80.entrypoints=http80"
+      - "traefik.http.routers.csi-code-server--80.middlewares=csi-redirect"
+      - "traefik.http.routers.csi-code-server--80.rule=Host(`${CODE_SERVER_DNS}`) && PathPrefix(`/code-server`)"
+
+      # Configure HTTPS mapping with automatic Letsencrypt certificate management
+      - "traefik.http.routers.csi-code-server--443.tls=true"
+      - "traefik.http.routers.csi-code-server--443.entrypoints=http443"
+      - "traefik.http.routers.csi-code-server--443.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.csi-code-server--443.middlewares=csi-auth-passwd,csi-code-server--stripprefix"
+      # - "traefik.http.routers.csi-code-server--443.middlewares=csi-code-server--stripprefix"
+      - "traefik.http.routers.csi-code-server--443.rule=Host(`${CODE_SERVER_DNS}`) && PathPrefix(`/code-server`)"
+
+      - "traefik.http.middlewares.csi-code-server--stripprefix.stripprefix.prefixes=/code-server"
+
+  filebrowser:
+    image: filebrowser/filebrowser:v2.10.0
+    volumes:
+      - /home/ubuntu:/srv
+    command:
+      - "--baseurl=/filebrowser"
+      - "--noauth"
+    labels:
+      - "traefik.enable=true"
+
+      # Configure basic HTTP mapping
+      - "traefik.http.routers.csi-filebrowser--80.entrypoints=http80"
+      - "traefik.http.routers.csi-filebrowser--80.middlewares=csi-redirect"
+      - "traefik.http.routers.csi-filebrowser--80.rule=Host(`${CODE_SERVER_DNS}`) && PathPrefix(`/filebrowser`)"
+
+      # Configure HTTPS mapping with automatic Letsencrypt certificate management
+      - "traefik.http.routers.csi-filebrowser--443.tls=true"
+      - "traefik.http.routers.csi-filebrowser--443.entrypoints=http443"
+      - "traefik.http.routers.csi-filebrowser--443.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.csi-filebrowser--443.middlewares=csi-auth-passwd"
+      - "traefik.http.routers.csi-filebrowser--443.rule=Host(`${CODE_SERVER_DNS}`) && PathPrefix(`/filebrowser`)"
+
+      # Configure Middlewares
+      # - "traefik.http.middlewares.csi-filebrowser--auth.forwardauth.address=https://${CODE_SERVER_DNS}"
+      # - "traefik.http.middlewares.csi-filebrowser--stripprefix.stripprefix.prefixes=/filebrowser"
+      # Try to automatically add the trailing slash (not yet working)
+      # https://community.traefik.io/t/fixed-how-to-add-the-missing-trailing-slash-redirectregex-stripprefixregex-no-need-for-replacepathregex/3816
+      # - "traefik.http.middlewares.csi-filebrowser--trailingslash.replacepathregex.regex=^/filebrowser(.*)"
+      # - "traefik.http.middlewares.csi-filebrowser--trailingslash.replacepathregex.replacement=/filebrowser/$$1"
+
+  netdata:
+    labels:
+      - "traefik.enable=true"
+
+      # Configure basic HTTP mapping
+      - "traefik.http.routers.csi-netdata--80.entrypoints=http80"
+      - "traefik.http.routers.csi-netdata--80.middlewares=csi-redirect"
+      - "traefik.http.routers.csi-netdata--80.rule=Host(`${CODE_SERVER_DNS}`)"
+
+      # Configure HTTPS mapping with automatic Letsencrypt certificate management
+      - "traefik.http.routers.csi-netdata--443.tls=true"
+      - "traefik.http.routers.csi-netdata--443.entrypoints=http443"
+      - "traefik.http.routers.csi-netdata--443.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.csi-netdata--443.rule=Host(`${CODE_SERVER_DNS}`) && PathPrefix(`/netdata`)"
+      - "traefik.http.routers.csi-netdata--443.middlewares=csi-auth-passwd,csi-netdata--stripprefix"
+
+      # Configure Middlewares
+      - "traefik.http.middlewares.csi-netdata--stripprefix.stripprefix.prefixes=/netdata"
+      # Try to automatically add the trailing slash (not yet working)
+      # https://community.traefik.io/t/fixed-how-to-add-the-missing-trailing-slash-redirectregex-stripprefixregex-no-need-for-replacepathregex/3816
+      # - "traefik.http.middlewares.csi-netdata--trailingslash.replacepathregex.regex=^/netdata(.*)"
+      # - "traefik.http.middlewares.csi-netdata--trailingslash.replacepathregex.replacement=/netdata/$$1"
+    image: netdata/netdata:v1.26.0
+    hostname: ${CODE_SERVER_DNS}
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - apparmor:unconfined
+    volumes:
+      # @TODO: map to local data folder
+      # - netdataconfig:/etc/netdata
+      # - netdatalib:/var/lib/netdata
+      # - netdatacache:/var/cache/netdata
+      - /etc/passwd:/host/etc/passwd:ro
+      - /etc/group:/host/etc/group:ro
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /etc/os-release:/host/etc/os-release:ro
+      # - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: on-failure
