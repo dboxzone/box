@@ -16,7 +16,6 @@ services:
       # Entry Points
       - "--entrypoints.http80.address=:80"
     volumes:
-      - ${CODE_SERVER_CWD}/data/letsencrypt:/letsencrypt
       - ${CODE_SERVER_CWD}/data/.htpasswd:/basic-auth/.htpasswd
       - /var/run/docker.sock:/var/run/docker.sock:ro
     image: traefik:v2.2
@@ -25,40 +24,16 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.csi.loadbalancer.server.port=1337"
-      - "traefik.http.routers.csi-traefik--80.rule=Host(`127.0.0.11`)"
+      - "traefik.http.routers.dbox-traefik--80.rule=Host(`127.0.0.11`)"
       
-      - "traefik.http.routers.csi-traefik--80.entrypoints=http80"
-      - "traefik.http.routers.csi-traefik--80.service=api@internal"
-      - "traefik.http.routers.csi-traefik--80.middlewares=csi-auth-passwd,csi-traefik-stripprefix"
-      - "traefik.http.routers.csi-traefik--80.rule=Host(`${CODE_SERVER_DNS}`) && (PathPrefix(`/traefik`) || PathPrefix(`/api`))"
+      - "traefik.http.routers.dbox-traefik--80.entrypoints=http80"
+      - "traefik.http.routers.dbox-traefik--80.service=api@internal"
+      - "traefik.http.routers.dbox-traefik--80.middlewares=dbox-github-auth,dbox-traefik-stripprefix"
+      - "traefik.http.routers.dbox-traefik--80.rule=Host(`${CODE_SERVER_DNS}`) && (PathPrefix(`/traefik`) || PathPrefix(`/api`))"
   
-      - "traefik.http.middlewares.csi-basic-auth.basicauth.usersfile=/basic-auth/.htpasswd"
-      # - "traefik.http.middlewares.csi-auth-passwd.forwardauth.address=http://${CODE_SERVER_IPv4_LOCAL}:40003"
-      - "traefik.http.middlewares.csi-auth-passwd.forwardauth.address=https://api-alpha.dbox.zone/api/v1/auth/self"
-      - "traefik.http.middlewares.csi-redirect.redirectscheme.scheme=https"
-      - "traefik.http.middlewares.csi-redirect.redirectscheme.permanent=true"
-      - "traefik.http.middlewares.csi-traefik-stripprefix.stripprefix.prefixes=/traefik"
-
-  # auth-passwd:
-  #   image: marcopeg/auth-passwd:0.0.9
-  #   restart: always
-  #   volumes:
-  #     - ${CODE_SERVER_CWD}/data/passwd:/passwd
-  #   environment:
-  #     - "PORT=40003"
-  #     - "BASE_URL=https://${CODE_SERVER_DNS}"
-  #     - "COOKIE_DOMAIN=${CODE_SERVER_DNS}"
-  #     - "COOKIE_SECRET=${CODE_SERVER_MGM_COOKIE_SECRET:-}"
-  #   network_mode: host
-  #   labels:
-  #     - "traefik.enable=true"
-  #     - "traefik.http.services.csi-auth-passwd.loadbalancer.server.port=40003"
-
-  #     # Configure basic HTTP mapping:
-  #     - "traefik.http.routers.csi-auth--80.entrypoints=http80"
-  #     - "traefik.http.routers.csi-auth--80.rule=Host(`${CODE_SERVER_DNS}`)"
-  #     # - "traefik.http.routers.csi-auth--80.middlewares=csi-redirect"
-  #     - "traefik.http.routers.csi-auth--80.rule=Host(`${CODE_SERVER_DNS}`) && PathPrefix(`/`)"
+      - "traefik.http.middlewares.dbox-traefik-stripprefix.stripprefix.prefixes=/traefik"
+      - "traefik.http.middlewares.dbox-basic-auth.basicauth.usersfile=/basic-auth/.htpasswd"
+      - "traefik.http.middlewares.dbox-github-auth.forwardauth.address=https://api-alpha.dbox.zone/api/v1/auth/self"
 
   code-server:
     image: marcopeg/nginx-proxy:0.0.2
@@ -69,11 +44,12 @@ services:
     restart: on-failure
     labels:
       - "traefik.enable=true"
-      - "traefik.http.services.csi-code-server.loadbalancer.server.port=40002"
-      - "traefik.http.routers.csi-code-server--80.entrypoints=http80"
-      # - "traefik.http.routers.csi-code-server--80.middlewares=csi-redirect"
-      - "traefik.http.routers.csi-code-server--80.rule=Host(`${CODE_SERVER_DNS}`)"
-      - "traefik.http.routers.csi-code-server--80.middlewares=csi-auth-passwd"
+      - "traefik.http.services.dbox-code-server.loadbalancer.server.port=40002"
+
+      # Configure basic HTTP mapping
+      - "traefik.http.routers.dbox-code-server--80.entrypoints=http80"
+      - "traefik.http.routers.dbox-code-server--80.middlewares=dbox-github-auth"
+      - "traefik.http.routers.dbox-code-server--80.rule=Host(`${CODE_SERVER_DNS}`)"
 
   filebrowser:
     image: filebrowser/filebrowser:v2.10.0
@@ -86,22 +62,21 @@ services:
       - "traefik.enable=true"
 
       # Configure basic HTTP mapping
-      - "traefik.http.routers.csi-filebrowser--80.entrypoints=http80"
-      - "traefik.http.routers.csi-filebrowser--80.middlewares=csi-redirect,csi-auth-passwd"
-      - "traefik.http.routers.csi-filebrowser--80.rule=Host(`${CODE_SERVER_DNS}`) && PathPrefix(`/filebrowser`)"
+      - "traefik.http.routers.dbox-filebrowser--80.entrypoints=http80"
+      - "traefik.http.routers.dbox-filebrowser--80.middlewares=dbox-github-auth"
+      - "traefik.http.routers.dbox-filebrowser--80.rule=Host(`${CODE_SERVER_DNS}`) && PathPrefix(`/filebrowser`)"
 
   netdata:
     labels:
       - "traefik.enable=true"
 
       # Configure basic HTTP mapping
-      - "traefik.http.routers.csi-netdata--80.entrypoints=http80"
-      - "traefik.http.routers.csi-netdata--80.middlewares=csi-redirect,csi-auth-passwd"
-      - "traefik.http.routers.csi-netdata--80.rule=Host(`${CODE_SERVER_DNS}`)"
-      - "traefik.http.routers.csi-netdata--443.middlewares=csi-auth-passwd,csi-netdata--stripprefix"
+      - "traefik.http.routers.dbox-netdata--80.entrypoints=http80"
+      - "traefik.http.routers.dbox-netdata--80.middlewares=dbox-github-auth,dbox-netdata--stripprefix"
+      - "traefik.http.routers.dbox-netdata--80.rule=Host(`${CODE_SERVER_DNS}`)"
 
       # Configure Middlewares
-      - "traefik.http.middlewares.csi-netdata--stripprefix.stripprefix.prefixes=/netdata"
+      - "traefik.http.middlewares.dbox-netdata--stripprefix.stripprefix.prefixes=/netdata"
     image: netdata/netdata:v1.26.0
     hostname: ${CODE_SERVER_DNS}
     cap_add:
