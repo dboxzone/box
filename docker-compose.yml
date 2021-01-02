@@ -41,13 +41,16 @@ services:
       - "traefik.enable=true"
       - "traefik.http.services.csi.loadbalancer.server.port=1337"
       - "traefik.http.routers.csi-traefik-http.rule=Host(`127.0.0.11`)"
+      
+      - "traefik.http.routers.csi-traefik-https.entrypoints=http80"
+      - "traefik.http.routers.csi-traefik-https.service=api@internal"
+      - "traefik.http.routers.csi-traefik-https.middlewares=csi-traefik-stripprefix"
+      - "traefik.http.routers.csi-traefik-https.rule=Host(`${CODE_SERVER_DNS}`) && (PathPrefix(`/traefik`) || PathPrefix(`/api`))"
 
       # - "traefik.http.routers.csi-traefik-https.tls=true"
       # - "traefik.http.routers.csi-traefik-https.entrypoints=http443"
       # - "traefik.http.routers.csi-traefik-https.tls.certresolver=letsencrypt"
       # - "traefik.http.routers.csi-traefik-https.service=api@internal"
-      # - "traefik.http.routers.csi-traefik-https.middlewares=csi-auth-passwd,csi-traefik-stripprefix"
-      # - "traefik.http.routers.csi-traefik-https.rule=Host(`${CODE_SERVER_DNS}`) && (PathPrefix(`/traefik`) || PathPrefix(`/api`))"
   
       - "traefik.http.middlewares.csi-basic-auth.basicauth.usersfile=/basic-auth/.htpasswd"
       - "traefik.http.middlewares.csi-auth-passwd.forwardauth.address=http://${CODE_SERVER_IPv4_LOCAL}:40003"
