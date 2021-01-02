@@ -58,31 +58,32 @@ services:
       - "traefik.http.middlewares.csi-redirect.redirectscheme.permanent=true"
       - "traefik.http.middlewares.csi-traefik-stripprefix.stripprefix.prefixes=/traefik"
 
-  # auth-passwd:
-  #   image: marcopeg/auth-passwd:0.0.9
-  #   restart: always
-  #   volumes:
-  #     - ${CODE_SERVER_CWD}/data/passwd:/passwd
-  #   environment:
-  #     - "PORT=40003"
-  #     - "BASE_URL=https://${CODE_SERVER_DNS}"
-  #     - "COOKIE_DOMAIN=${CODE_SERVER_DNS}"
-  #     - "COOKIE_SECRET=${CODE_SERVER_MGM_COOKIE_SECRET:-}"
-  #   network_mode: host
-  #   labels:
-  #     - "traefik.enable=true"
-  #     - "traefik.http.services.csi-auth-passwd.loadbalancer.server.port=40003"
+  auth-passwd:
+    image: marcopeg/auth-passwd:0.0.9
+    restart: always
+    volumes:
+      - ${CODE_SERVER_CWD}/data/passwd:/passwd
+    environment:
+      - "PORT=40003"
+      - "BASE_URL=https://${CODE_SERVER_DNS}"
+      - "COOKIE_DOMAIN=${CODE_SERVER_DNS}"
+      - "COOKIE_SECRET=${CODE_SERVER_MGM_COOKIE_SECRET:-}"
+    network_mode: host
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.csi-auth-passwd.loadbalancer.server.port=40003"
 
-  #     # Configure basic HTTP mapping:
-  #     - "traefik.http.routers.auth-passwd--80.entrypoints=http80"
-  #     - "traefik.http.routers.auth-passwd--80.rule=Host(`${CODE_SERVER_DNS}`)"
-  #     - "traefik.http.routers.auth-passwd--80.middlewares=csi-redirect"
+      # Configure basic HTTP mapping:
+      - "traefik.http.routers.auth-passwd--80.entrypoints=http80"
+      - "traefik.http.routers.auth-passwd--80.rule=Host(`${CODE_SERVER_DNS}`)"
+      # - "traefik.http.routers.auth-passwd--80.middlewares=csi-redirect"
+      - "traefik.http.routers.auth-passwd--80.rule=Host(`${CODE_SERVER_DNS}`) && PathPrefix(`/`)"
 
-  #     # Configure HTTPS mapping with automatic Letsencrypt certificate management
-  #     - "traefik.http.routers.auth-passwd--443.tls=true"
-  #     - "traefik.http.routers.auth-passwd--443.entrypoints=http443"
-  #     - "traefik.http.routers.auth-passwd--443.tls.certresolver=letsencrypt"
-  #     - "traefik.http.routers.auth-passwd--443.rule=Host(`${CODE_SERVER_DNS}`) && PathPrefix(`/`)"
+      # Configure HTTPS mapping with automatic Letsencrypt certificate management
+      # - "traefik.http.routers.auth-passwd--443.tls=true"
+      # - "traefik.http.routers.auth-passwd--443.entrypoints=http443"
+      # - "traefik.http.routers.auth-passwd--443.tls.certresolver=letsencrypt"
+      # - "traefik.http.routers.auth-passwd--443.rule=Host(`${CODE_SERVER_DNS}`) && PathPrefix(`/`)"
 
   # code-server:
   #   image: marcopeg/nginx-proxy:0.0.2
