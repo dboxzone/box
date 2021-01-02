@@ -29,7 +29,7 @@ services:
       
       - "traefik.http.routers.csi-traefik--80.entrypoints=http80"
       - "traefik.http.routers.csi-traefik--80.service=api@internal"
-      - "traefik.http.routers.csi-traefik--80.middlewares=csi-traefik-stripprefix"
+      - "traefik.http.routers.csi-traefik--80.middlewares=csi-auth-passwd,csi-traefik-stripprefix"
       - "traefik.http.routers.csi-traefik--80.rule=Host(`${CODE_SERVER_DNS}`) && (PathPrefix(`/traefik`) || PathPrefix(`/api`))"
   
       - "traefik.http.middlewares.csi-basic-auth.basicauth.usersfile=/basic-auth/.htpasswd"
