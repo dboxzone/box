@@ -40,17 +40,12 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.csi.loadbalancer.server.port=1337"
-      - "traefik.http.routers.csi-traefik-http.rule=Host(`127.0.0.11`)"
+      - "traefik.http.routers.csi-traefik--80.rule=Host(`127.0.0.11`)"
       
-      - "traefik.http.routers.csi-traefik-http.entrypoints=http80"
-      - "traefik.http.routers.csi-traefik-http.service=api@internal"
-      - "traefik.http.routers.csi-traefik-http.middlewares=csi-traefik-stripprefix"
-      - "traefik.http.routers.csi-traefik-http.rule=Host(`${CODE_SERVER_DNS}`) && (PathPrefix(`/traefik`) || PathPrefix(`/api`))"
-
-      # - "traefik.http.routers.csi-traefik-https.tls=true"
-      # - "traefik.http.routers.csi-traefik-https.entrypoints=http443"
-      # - "traefik.http.routers.csi-traefik-https.tls.certresolver=letsencrypt"
-      # - "traefik.http.routers.csi-traefik-https.service=api@internal"
+      - "traefik.http.routers.csi-traefik--80.entrypoints=http80"
+      - "traefik.http.routers.csi-traefik--80.service=api@internal"
+      - "traefik.http.routers.csi-traefik--80.middlewares=csi-redirect,csi-traefik-stripprefix"
+      - "traefik.http.routers.csi-traefik--80.rule=Host(`${CODE_SERVER_DNS}`) && (PathPrefix(`/traefik`) || PathPrefix(`/api`))"
   
       - "traefik.http.middlewares.csi-basic-auth.basicauth.usersfile=/basic-auth/.htpasswd"
       - "traefik.http.middlewares.csi-auth-passwd.forwardauth.address=http://${CODE_SERVER_IPv4_LOCAL}:40003"
@@ -74,16 +69,10 @@ services:
       - "traefik.http.services.csi-auth-passwd.loadbalancer.server.port=40003"
 
       # Configure basic HTTP mapping:
-      - "traefik.http.routers.auth-passwd--80.entrypoints=http80"
-      - "traefik.http.routers.auth-passwd--80.rule=Host(`${CODE_SERVER_DNS}`)"
-      # - "traefik.http.routers.auth-passwd--80.middlewares=csi-redirect"
-      - "traefik.http.routers.auth-passwd--80.rule=Host(`${CODE_SERVER_DNS}`) && PathPrefix(`/`)"
-
-      # Configure HTTPS mapping with automatic Letsencrypt certificate management
-      # - "traefik.http.routers.auth-passwd--443.tls=true"
-      # - "traefik.http.routers.auth-passwd--443.entrypoints=http443"
-      # - "traefik.http.routers.auth-passwd--443.tls.certresolver=letsencrypt"
-      # - "traefik.http.routers.auth-passwd--443.rule=Host(`${CODE_SERVER_DNS}`) && PathPrefix(`/`)"
+      - "traefik.http.routers.csi-auth--80.entrypoints=http80"
+      - "traefik.http.routers.csi-auth--80.rule=Host(`${CODE_SERVER_DNS}`)"
+      - "traefik.http.routers.csi-auth--80.middlewares=csi-redirect"
+      - "traefik.http.routers.csi-auth--80.rule=Host(`${CODE_SERVER_DNS}`) && PathPrefix(`/`)"
 
   code-server:
     image: marcopeg/nginx-proxy:0.0.2
@@ -95,20 +84,10 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.csi-code-server.loadbalancer.server.port=40002"
-
-      # Configure basic HTTP mapping
       - "traefik.http.routers.csi-code-server--80.entrypoints=http80"
       - "traefik.http.routers.csi-code-server--80.middlewares=csi-redirect"
       - "traefik.http.routers.csi-code-server--80.rule=Host(`${CODE_SERVER_DNS}`) && PathPrefix(`/code-server`)"
       - "traefik.http.routers.csi-code-server--80.middlewares=csi-auth-passwd,csi-code-server--stripprefix"
-
-      # Configure HTTPS mapping with automatic Letsencrypt certificate management
-      # - "traefik.http.routers.csi-code-server--443.tls=true"
-      # - "traefik.http.routers.csi-code-server--443.entrypoints=http443"
-      # - "traefik.http.routers.csi-code-server--443.tls.certresolver=letsencrypt"
-      # - "traefik.http.routers.csi-code-server--443.middlewares=csi-auth-passwd,csi-code-server--stripprefix"
-      # - "traefik.http.routers.csi-code-server--443.rule=Host(`${CODE_SERVER_DNS}`) && PathPrefix(`/code-server`)"
-
       - "traefik.http.middlewares.csi-code-server--stripprefix.stripprefix.prefixes=/code-server"
 
   # filebrowser:
