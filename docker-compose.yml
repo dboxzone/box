@@ -42,6 +42,8 @@ services:
       - ./api/package-lock.json:/usr/src/app/package-lock.json:delegated
       - ./api/index.js:/usr/src/app/index.js:delegated
     working_dir: /usr/src/app
+    expose:
+      - 8080
     entrypoint: ["npm", "run", "compose:start:prod"]
     # healthcheck:
     #   test: ["CMD", "wget", "-qO", "-", "http://auth-server:4000/healthz"]
