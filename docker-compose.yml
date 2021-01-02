@@ -85,31 +85,31 @@ services:
       # - "traefik.http.routers.auth-passwd--443.tls.certresolver=letsencrypt"
       # - "traefik.http.routers.auth-passwd--443.rule=Host(`${CODE_SERVER_DNS}`) && PathPrefix(`/`)"
 
-  # code-server:
-  #   image: marcopeg/nginx-proxy:0.0.2
-  #   environment:
-  #    - NGINX_PORT=40002
-  #    - NGINX_UPSTREAM_PORT=40001
-  #   network_mode: host
-  #   restart: on-failure
-  #   labels:
-  #     - "traefik.enable=true"
-  #     - "traefik.http.services.csi-code-server.loadbalancer.server.port=40002"
+  code-server:
+    image: marcopeg/nginx-proxy:0.0.2
+    environment:
+     - NGINX_PORT=40002
+     - NGINX_UPSTREAM_PORT=40001
+    network_mode: host
+    restart: on-failure
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.csi-code-server.loadbalancer.server.port=40002"
 
-  #     # Configure basic HTTP mapping
-  #     - "traefik.http.routers.csi-code-server--80.entrypoints=http80"
-  #     - "traefik.http.routers.csi-code-server--80.middlewares=csi-redirect"
-  #     - "traefik.http.routers.csi-code-server--80.rule=Host(`${CODE_SERVER_DNS}`) && PathPrefix(`/code-server`)"
+      # Configure basic HTTP mapping
+      - "traefik.http.routers.csi-code-server--80.entrypoints=http80"
+      - "traefik.http.routers.csi-code-server--80.middlewares=csi-redirect"
+      - "traefik.http.routers.csi-code-server--80.rule=Host(`${CODE_SERVER_DNS}`) && PathPrefix(`/code-server`)"
+      - "traefik.http.routers.csi-code-server--80.middlewares=csi-auth-passwd,csi-code-server--stripprefix"
 
-  #     # Configure HTTPS mapping with automatic Letsencrypt certificate management
-  #     - "traefik.http.routers.csi-code-server--443.tls=true"
-  #     - "traefik.http.routers.csi-code-server--443.entrypoints=http443"
-  #     - "traefik.http.routers.csi-code-server--443.tls.certresolver=letsencrypt"
-  #     - "traefik.http.routers.csi-code-server--443.middlewares=csi-auth-passwd,csi-code-server--stripprefix"
-  #     # - "traefik.http.routers.csi-code-server--443.middlewares=csi-code-server--stripprefix"
-  #     - "traefik.http.routers.csi-code-server--443.rule=Host(`${CODE_SERVER_DNS}`) && PathPrefix(`/code-server`)"
+      # Configure HTTPS mapping with automatic Letsencrypt certificate management
+      # - "traefik.http.routers.csi-code-server--443.tls=true"
+      # - "traefik.http.routers.csi-code-server--443.entrypoints=http443"
+      # - "traefik.http.routers.csi-code-server--443.tls.certresolver=letsencrypt"
+      # - "traefik.http.routers.csi-code-server--443.middlewares=csi-auth-passwd,csi-code-server--stripprefix"
+      # - "traefik.http.routers.csi-code-server--443.rule=Host(`${CODE_SERVER_DNS}`) && PathPrefix(`/code-server`)"
 
-  #     - "traefik.http.middlewares.csi-code-server--stripprefix.stripprefix.prefixes=/code-server"
+      - "traefik.http.middlewares.csi-code-server--stripprefix.stripprefix.prefixes=/code-server"
 
   # filebrowser:
   #   image: filebrowser/filebrowser:v2.10.0
