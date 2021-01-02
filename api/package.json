@@ -5,7 +5,8 @@
   "main": "src/index.js",
   "scripts": {
     "start": "nodemon ./index.js",
-    "compose:start": "npm i && ./node_modules/.bin/nodemon -L ./index.js"
+    "compose:start": "npm i && ./node_modules/.bin/nodemon -L ./index.js",
+    "compose:start:prod": "npm i && node ./index.js"
   },
   "dependencies": {
     "@forrestjs/package-fastify": "3.19.6",

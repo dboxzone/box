@@ -35,6 +35,30 @@ services:
       - "traefik.http.middlewares.dbox-basic-auth.basicauth.usersfile=/basic-auth/.htpasswd"
       - "traefik.http.middlewares.dbox-github-auth.forwardauth.address=https://api-alpha.dbox.zone/api/v1/auth/self"
 
+  dbox:
+    image: node:12.2
+    volumes:
+      - ./api/package.json:/usr/src/app/package.json:delegated
+      - ./api/package-lock.json:/usr/src/app/package-lock.json:delegated
+      - ./api/index.js:/usr/src/app/index.js:delegated
+    working_dir: /usr/src/app
+    entrypoint: ["npm", "run", "compose:start:prod"]
+    # healthcheck:
+    #   test: ["CMD", "wget", "-qO", "-", "http://auth-server:4000/healthz"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 20
+    labels:
+      - "traefik.enable=true"
+
+      # Configure basic HTTP mapping:
+      - "traefik.http.routers.dbox-api--80.entrypoints=http80"
+      - "traefik.http.routers.dbox-api--80.middlewares=dbox-github-auth,dbox-netdata--stripprefix"
+      - "traefik.http.routers.dbox-api--80.rule=Host(`${CODE_SERVER_DNS}`) && PathPrefix(`/dbox`)"
+
+      # Configure middlewares:
+      - "traefik.http.middlewares.dbox-api--prefix.stripprefix.prefixes=/dbox"
+
   code-server:
     image: marcopeg/nginx-proxy:0.0.2
     environment:
