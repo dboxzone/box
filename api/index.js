@@ -121,48 +121,48 @@ const loginHandler = async (request, reply) => {
  * ENVIRONMENT VALIDATION AND WIRING
  */
 
-const env = envalid.cleanEnv(process.env, {
-  BASE_URL: envalid.url(),
-  PASSWD_FILE_PATH: envalid.str({ default: '/passwd' }),
-  COOKIE_DOMAIN: envalid.str(),
-  COOKIE_SECRET: envalid.str({ 
-    default: generator.generate({
-      length: 10,
-      numbers: true
-    }) 
-  }),
-});
+// const env = envalid.cleanEnv(process.env, {
+//   BASE_URL: envalid.url(),
+//   PASSWD_FILE_PATH: envalid.str({ default: '/passwd' }),
+//   COOKIE_DOMAIN: envalid.str(),
+//   COOKIE_SECRET: envalid.str({ 
+//     default: generator.generate({
+//       length: 10,
+//       numbers: true
+//     }) 
+//   }),
+// });
 
 runHookApp({
   trace: "compact",
   settings: {
-    fastify: {
-      cookie: {
-        secret: env.COOKIE_SECRET,
-        domain: env.COOKIE_DOMAIN,
-      }
-    },
-    auth: {
-      source: env.PASSWD_FILE_PATH,
-      action: env.BASE_URL,
-    }
+    // fastify: {
+    //   cookie: {
+    //     secret: env.COOKIE_SECRET,
+    //     domain: env.COOKIE_DOMAIN,
+    //   }
+    // },
+    // auth: {
+    //   source: env.PASSWD_FILE_PATH,
+    //   action: env.BASE_URL,
+    // }
   },
-  services: [serviceFastify, serviceFastifyCookie, serviceFastifyHealthz],
-  features: [({ registerAction }) => {
-    registerAction({
-      name: 'fastifyBodyPlugin',
-      hook: '$FASTIFY_PLUGIN',
-      handler: ({ registerPlugin }) => registerPlugin(fastifyFormbody)
-    })
-    registerAction({
-      name: 'homePage',
-      hook: '$FASTIFY_GET',
-      handler: ["/", homePageHandler]
-    })
-    registerAction({
-      name: 'loginAction',
-      hook: '$FASTIFY_POST',
-      handler: ["/", loginHandler]
-    })
-  }]
+  services: [serviceFastify, serviceFastifyHealthz],
+  // features: [({ registerAction }) => {
+  //   registerAction({
+  //     name: 'fastifyBodyPlugin',
+  //     hook: '$FASTIFY_PLUGIN',
+  //     handler: ({ registerPlugin }) => registerPlugin(fastifyFormbody)
+  //   })
+  //   registerAction({
+  //     name: 'homePage',
+  //     hook: '$FASTIFY_GET',
+  //     handler: ["/", homePageHandler]
+  //   })
+  //   registerAction({
+  //     name: 'loginAction',
+  //     hook: '$FASTIFY_POST',
+  //     handler: ["/", loginHandler]
+  //   })
+  // }]
 });
