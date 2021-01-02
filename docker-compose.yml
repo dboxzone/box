@@ -55,7 +55,7 @@ services:
 
       # Configure basic HTTP mapping:
       - "traefik.http.routers.dbox-api--80.entrypoints=http80"
-      - "traefik.http.routers.dbox-api--80.middlewares=dbox-github-auth,dbox-netdata--stripprefix"
+      - "traefik.http.routers.dbox-api--80.middlewares=dbox-github-auth,dbox-api--prefix"
       - "traefik.http.routers.dbox-api--80.rule=Host(`${CODE_SERVER_DNS}`) && PathPrefix(`/dbox`)"
 
       # Configure middlewares:
