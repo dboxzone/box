@@ -95,7 +95,7 @@ services:
     volumes:
       - /home/ubuntu:/srv
     command:
-      # - "--baseurl=/filebrowser"
+      - "--baseurl=/filebrowser"
       - "--noauth"
     labels:
       - "traefik.enable=true"
@@ -105,9 +105,6 @@ services:
       - "traefik.http.routers.csi-filebrowser--80.middlewares=csi-redirect"
       - "traefik.http.routers.csi-filebrowser--80.middlewares=csi-auth-passwd"
       - "traefik.http.routers.csi-filebrowser--80.rule=Host(`${CODE_SERVER_DNS}`) && PathPrefix(`/filebrowser`)"
-
-      # Configure Middlewares
-      - "traefik.http.middlewares.csi-filebrowser--stripprefix.stripprefix.prefixes=/filebrowser"
 
   netdata:
     labels:
