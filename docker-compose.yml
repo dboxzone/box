@@ -73,7 +73,7 @@ services:
       # Configure basic HTTP mapping
       - "traefik.http.routers.dbox-netdata--80.entrypoints=http80"
       - "traefik.http.routers.dbox-netdata--80.middlewares=dbox-github-auth,dbox-netdata--stripprefix"
-      - "traefik.http.routers.dbox-netdata--80.rule=Host(`${CODE_SERVER_DNS}`)"
+      - "traefik.http.routers.dbox-netdata--80.rule=Host(`${CODE_SERVER_DNS}`) && PathPrefix(`/netdata`)"
 
       # Configure Middlewares
       - "traefik.http.middlewares.dbox-netdata--stripprefix.stripprefix.prefixes=/netdata"
