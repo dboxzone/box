@@ -39,26 +39,26 @@ services:
       - "traefik.http.middlewares.csi-redirect.redirectscheme.permanent=true"
       - "traefik.http.middlewares.csi-traefik-stripprefix.stripprefix.prefixes=/traefik"
 
-  auth-passwd:
-    image: marcopeg/auth-passwd:0.0.9
-    restart: always
-    volumes:
-      - ${CODE_SERVER_CWD}/data/passwd:/passwd
-    environment:
-      - "PORT=40003"
-      - "BASE_URL=https://${CODE_SERVER_DNS}"
-      - "COOKIE_DOMAIN=${CODE_SERVER_DNS}"
-      - "COOKIE_SECRET=${CODE_SERVER_MGM_COOKIE_SECRET:-}"
-    network_mode: host
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.services.csi-auth-passwd.loadbalancer.server.port=40003"
+  # auth-passwd:
+  #   image: marcopeg/auth-passwd:0.0.9
+  #   restart: always
+  #   volumes:
+  #     - ${CODE_SERVER_CWD}/data/passwd:/passwd
+  #   environment:
+  #     - "PORT=40003"
+  #     - "BASE_URL=https://${CODE_SERVER_DNS}"
+  #     - "COOKIE_DOMAIN=${CODE_SERVER_DNS}"
+  #     - "COOKIE_SECRET=${CODE_SERVER_MGM_COOKIE_SECRET:-}"
+  #   network_mode: host
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.services.csi-auth-passwd.loadbalancer.server.port=40003"
 
-      # Configure basic HTTP mapping:
-      - "traefik.http.routers.csi-auth--80.entrypoints=http80"
-      - "traefik.http.routers.csi-auth--80.rule=Host(`${CODE_SERVER_DNS}`)"
-      # - "traefik.http.routers.csi-auth--80.middlewares=csi-redirect"
-      - "traefik.http.routers.csi-auth--80.rule=Host(`${CODE_SERVER_DNS}`) && PathPrefix(`/`)"
+  #     # Configure basic HTTP mapping:
+  #     - "traefik.http.routers.csi-auth--80.entrypoints=http80"
+  #     - "traefik.http.routers.csi-auth--80.rule=Host(`${CODE_SERVER_DNS}`)"
+  #     # - "traefik.http.routers.csi-auth--80.middlewares=csi-redirect"
+  #     - "traefik.http.routers.csi-auth--80.rule=Host(`${CODE_SERVER_DNS}`) && PathPrefix(`/`)"
 
   code-server:
     image: marcopeg/nginx-proxy:0.0.2
@@ -72,9 +72,8 @@ services:
       - "traefik.http.services.csi-code-server.loadbalancer.server.port=40002"
       - "traefik.http.routers.csi-code-server--80.entrypoints=http80"
       - "traefik.http.routers.csi-code-server--80.middlewares=csi-redirect"
-      - "traefik.http.routers.csi-code-server--80.rule=Host(`${CODE_SERVER_DNS}`) && PathPrefix(`/code-server`)"
-      - "traefik.http.routers.csi-code-server--80.middlewares=csi-auth-passwd,csi-code-server--stripprefix"
-      - "traefik.http.middlewares.csi-code-server--stripprefix.stripprefix.prefixes=/code-server"
+      - "traefik.http.routers.csi-code-server--80.rule=Host(`${CODE_SERVER_DNS}`)"
+      - "traefik.http.routers.csi-code-server--80.middlewares=csi-auth-passwd"
 
   filebrowser:
     image: filebrowser/filebrowser:v2.10.0
