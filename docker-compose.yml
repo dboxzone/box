@@ -44,7 +44,7 @@ services:
       
       - "traefik.http.routers.csi-traefik--80.entrypoints=http80"
       - "traefik.http.routers.csi-traefik--80.service=api@internal"
-      - "traefik.http.routers.csi-traefik--80.middlewares=csi-redirect,csi-traefik-stripprefix"
+      - "traefik.http.routers.csi-traefik--80.middlewares=csi-traefik-stripprefix"
       - "traefik.http.routers.csi-traefik--80.rule=Host(`${CODE_SERVER_DNS}`) && (PathPrefix(`/traefik`) || PathPrefix(`/api`))"
   
       - "traefik.http.middlewares.csi-basic-auth.basicauth.usersfile=/basic-auth/.htpasswd"
@@ -71,7 +71,7 @@ services:
       # Configure basic HTTP mapping:
       - "traefik.http.routers.csi-auth--80.entrypoints=http80"
       - "traefik.http.routers.csi-auth--80.rule=Host(`${CODE_SERVER_DNS}`)"
-      - "traefik.http.routers.csi-auth--80.middlewares=csi-redirect"
+      # - "traefik.http.routers.csi-auth--80.middlewares=csi-redirect"
       - "traefik.http.routers.csi-auth--80.rule=Host(`${CODE_SERVER_DNS}`) && PathPrefix(`/`)"
 
   code-server:
