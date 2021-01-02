@@ -44,7 +44,7 @@ services:
       
       - "traefik.http.routers.csi-traefik-https.entrypoints=http80"
       - "traefik.http.routers.csi-traefik-https.service=api@internal"
-      - "traefik.http.routers.csi-traefik-https.middlewares=csi-auth,csi-traefik-stripprefix"
+      - "traefik.http.routers.csi-traefik-https.middlewares=csi-traefik-stripprefix,csi-auth"
       - "traefik.http.routers.csi-traefik-https.rule=Host(`${CODE_SERVER_DNS}`) && (PathPrefix(`/traefik`) || PathPrefix(`/api`))"
 
       # - "traefik.http.routers.csi-traefik-https.tls=true"
