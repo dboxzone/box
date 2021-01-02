@@ -25,6 +25,6 @@ sudo systemctl start code-server-ide
 # This phase needs the DNS in place for Letsencrypt to work properly
 if [ "no" != "${CODE_SERVER_AUTO_START}" ];
 then
-  docker-compose -f ${CWD}/docker-compose.yml up -d auth-passwd traefik code-server
+  docker-compose -f ${CWD}/docker-compose.yml up -d monitor traefik code-server
 fi
 
