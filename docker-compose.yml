@@ -87,8 +87,7 @@ services:
 
       # Configure basic HTTP mapping
       - "traefik.http.routers.csi-filebrowser--80.entrypoints=http80"
-      - "traefik.http.routers.csi-filebrowser--80.middlewares=csi-redirect"
-      - "traefik.http.routers.csi-filebrowser--80.middlewares=csi-auth-passwd"
+      - "traefik.http.routers.csi-filebrowser--80.middlewares=csi-redirect,csi-auth-passwd"
       - "traefik.http.routers.csi-filebrowser--80.rule=Host(`${CODE_SERVER_DNS}`) && PathPrefix(`/filebrowser`)"
 
   netdata:
@@ -97,7 +96,7 @@ services:
 
       # Configure basic HTTP mapping
       - "traefik.http.routers.csi-netdata--80.entrypoints=http80"
-      - "traefik.http.routers.csi-netdata--80.middlewares=csi-redirect"
+      - "traefik.http.routers.csi-netdata--80.middlewares=csi-redirect,csi-auth-passwd"
       - "traefik.http.routers.csi-netdata--80.rule=Host(`${CODE_SERVER_DNS}`)"
       - "traefik.http.routers.csi-netdata--443.middlewares=csi-auth-passwd,csi-netdata--stripprefix"
 
