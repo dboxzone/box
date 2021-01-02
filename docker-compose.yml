@@ -51,7 +51,7 @@ services:
 
       # Configure basic HTTP mapping:
       - "traefik.http.routers.dbox-monitor--80.entrypoints=http80"
-      - "traefik.http.routers.dbox-monitor--80.middlewares=dbox-github-auth,dbox-monitor--prefix"
+      - "traefik.http.routers.dbox-monitor--80.middlewares=dbox-monitor--prefix"
       - "traefik.http.routers.dbox-monitor--80.rule=Host(`${CODE_SERVER_DNS}`) && PathPrefix(`/monitor`)"
 
       # Configure middlewares:
