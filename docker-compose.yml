@@ -35,31 +35,27 @@ services:
       - "traefik.http.middlewares.dbox-basic-auth.basicauth.usersfile=/basic-auth/.htpasswd"
       - "traefik.http.middlewares.dbox-github-auth.forwardauth.address=https://api-alpha.dbox.zone/api/v1/auth/self"
 
-  dbox-api:
+  monitor:
     image: node:12.2
+    restart: on-failure
     volumes:
-      - ./api/package.json:/usr/src/app/package.json:delegated
-      - ./api/package-lock.json:/usr/src/app/package-lock.json:delegated
-      - ./api/index.js:/usr/src/app/index.js:delegated
+      - ./monitor/package.json:/usr/src/app/package.json:delegated
+      - ./monitor/package-lock.json:/usr/src/app/package-lock.json:delegated
+      - ./monitor/index.js:/usr/src/app/index.js:delegated
     working_dir: /usr/src/app
     expose:
       - 8080
     entrypoint: ["npm", "run", "compose:start:prod"]
-    # healthcheck:
-    #   test: ["CMD", "wget", "-qO", "-", "http://auth-server:4000/healthz"]
-    #   interval: 10s
-    #   timeout: 5s
-    #   retries: 20
     labels:
       - "traefik.enable=true"
 
       # Configure basic HTTP mapping:
-      - "traefik.http.routers.dbox-api--80.entrypoints=http80"
-      - "traefik.http.routers.dbox-api--80.middlewares=dbox-github-auth,dbox-api--prefix"
-      - "traefik.http.routers.dbox-api--80.rule=Host(`${CODE_SERVER_DNS}`) && PathPrefix(`/dbox`)"
+      - "traefik.http.routers.dbox-monitor--80.entrypoints=http80"
+      - "traefik.http.routers.dbox-monitor--80.middlewares=dbox-github-auth,dbox-monitor--prefix"
+      - "traefik.http.routers.dbox-monitor--80.rule=Host(`${CODE_SERVER_DNS}`) && PathPrefix(`/monitor`)"
 
       # Configure middlewares:
-      - "traefik.http.middlewares.dbox-api--prefix.stripprefix.prefixes=/dbox"
+      - "traefik.http.middlewares.dbox-monitor--prefix.stripprefix.prefixes=/monitor"
 
   code-server:
     image: marcopeg/nginx-proxy:0.0.2
