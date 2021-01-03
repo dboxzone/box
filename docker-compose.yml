@@ -33,7 +33,7 @@ services:
   
       - "traefik.http.middlewares.dbox-traefik-stripprefix.stripprefix.prefixes=/traefik"
       - "traefik.http.middlewares.dbox-basic-auth.basicauth.usersfile=/basic-auth/.htpasswd"
-      - "traefik.http.middlewares.dbox-github-auth.forwardauth.address=https://api-alpha.dbox.zone/api/v1/auth/self"
+      - "traefik.http.middlewares.dbox-github-auth.forwardauth.address=https://api-alpha.godevbox.com/api/v1/auth/self"
 
   monitor:
     image: node:12.2
