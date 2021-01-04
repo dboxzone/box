@@ -1,0 +1,18 @@
+version: "2.1"
+services:
+  cra:
+    image: node:12.2
+    working_dir: /usr/src/app
+    entrypoint: ["npm", "run", "start:compose"]
+    expose:
+      - 8080
+    volumes:
+      - ./package.json:/usr/src/app/package.json:delegated
+      - ./package-lock.json:/usr/src/app/package-lock.json:delegated
+      - ./src:/usr/src/app/src:delegated
+    labels:
+      - "traefik.enable=true"
+
+      # Configure basic HTTP mapping
+      - "traefik.http.routers.cra--80.entrypoints=http80"
+      - "traefik.http.routers.cra--80.rule=Host(`simple-node-app-${CODE_SERVER_DNS}`)"
