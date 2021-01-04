@@ -25,16 +25,11 @@ function up() {
     -l traefik.enable=true \
     -l traefik.http.services.csi-p${PROXY_PORT}.loadbalancer.server.port=5${PROXY_PORT} \
     -l traefik.http.routers.csi-p${PROXY_PORT}--80.entrypoints=http80 \
-    -l traefik.http.routers.csi-p${PROXY_PORT}--80.rule=Host\(\`p${PROXY_PORT}.${CODE_SERVER_DNS}\`\) \
-    -l traefik.http.routers.csi-p${PROXY_PORT}--80.middlewares=csi-redirect \
-    -l traefik.http.routers.csi-p${PROXY_PORT}--443.tls=true \
-    -l traefik.http.routers.csi-p${PROXY_PORT}--443.entrypoints=http443 \
-    -l traefik.http.routers.csi-p${PROXY_PORT}--443.tls.certresolver=letsencrypt \
-    -l traefik.http.routers.csi-p${PROXY_PORT}--443.rule=Host\(\`p${PROXY_PORT}.${CODE_SERVER_DNS}\`\) \
+    -l traefik.http.routers.csi-p${PROXY_PORT}--80.rule=Host\(\`p${PROXY_PORT}-${CODE_SERVER_DNS}\`\) \
     marcopeg/nginx-proxy:0.0.2 >> ${CODE_SERVER_LOGS}/cs.log 2>&1
 
   echo "New proxy to port ${PROXY_PORT} available at:"
-  echo "https://p${PROXY_PORT}.${CODE_SERVER_DNS}"
+  echo "https://p${PROXY_PORT}-${CODE_SERVER_DNS}"
   exit 0
 }
 
