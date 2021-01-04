@@ -11,7 +11,7 @@ runHookApp({
   settings: {
     fastify: {
       static: {
-        root: path.join(__dirname, "public")
+        root: path.join(__dirname, "www")
       }
     }
   },
