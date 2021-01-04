@@ -1,0 +1,14 @@
+{
+  "name": "proxied-node-app",
+  "version": "1.0.0",
+  "description": "A simple NodeJS App",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "author": "@godevbox",
+  "license": "MIT",
+  "dependencies": {
+    "@forrestjs/package-fastify": "^3.19.8"
+  }
+}
