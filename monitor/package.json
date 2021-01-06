@@ -9,7 +9,8 @@
     "compose:start:prod": "npm i && node ./index.js"
   },
   "dependencies": {
-    "@forrestjs/package-fastify": "3.19.6"
+    "@forrestjs/package-fastify": "3.19.6",
+    "axios": "^0.21.1"
   },
   "devDependencies": {
     "nodemon": "^2.0.6"

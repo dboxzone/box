@@ -42,6 +42,8 @@ services:
       - ./monitor/package.json:/usr/src/app/package.json:delegated
       - ./monitor/package-lock.json:/usr/src/app/package-lock.json:delegated
       - ./monitor/index.js:/usr/src/app/index.js:delegated
+    environment:
+      - DBOX_DNS=${CODE_SERVER_DNS}
     working_dir: /usr/src/app
     expose:
       - 8080
