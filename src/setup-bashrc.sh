@@ -24,7 +24,7 @@ else
   echo "ssh-add /home/ubuntu/.ssh/id_rsa" >> /etc/bash.bashrc
 
   # Add aliase to the main CLI utility
-  echo "alias cs='${CODE_SERVER_CWD}/src/cs.sh'" >> /etc/bash.bashrc
+  echo "alias dbox='${CODE_SERVER_CWD}/src/cs.sh'" >> /etc/bash.bashrc
 fi
 
 # Reload the bashrc so to activate the alias:
